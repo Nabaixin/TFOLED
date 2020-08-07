@@ -20,8 +20,6 @@
 # THE SOFTWARE.
 import time
 import RPi.GPIO
-#import Adafruit_GPIO.SPI as SPI
-#import NBX_RTC
 import NBX_OLED
 
 import json
