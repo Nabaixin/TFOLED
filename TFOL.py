@@ -21,7 +21,6 @@
 import time
 import RPi.GPIO
 import NBX_OLED
-
 import json
 
 
@@ -118,39 +117,31 @@ while True:
     #stct = str_json["StayCount"]
     #tti = str_json["TodayTotalIn"]
     #tto = str_json["TodayTotalOut"]
-    lt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    # Shell scripts for system monitoring from here : https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
     cmd = "cat /sys/class/thermal/thermal_zone0/temp"
     tmpcore = int(subprocess.check_output(cmd, shell = True ))
     if(tmpcore > 60000) :
         RPi.GPIO.output(4, True)
     if(tmpcore < 45000) :
         RPi.GPIO.output(4, False)
-    #print (lt)
-    draw.text((x, top),       "T:" + lt,  font=font, fill=255)
-    draw.text((x, top+8),       "Core temp:" + str(tmpcore/1000),  font=font, fill=255)
-    #draw.text((x, top+16),    "TodayTotalIn:" + str(tti),  font=font, fill=255)
-    #draw.text((x, top+25),    "TodayTotalOut:" + str(tto),  font=font, fill=255)
-    disp.image(image)
-    disp.display()
-    time.sleep(3)
-    # Shell scripts for system monitoring from here : https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
     cmd = "hostname -I | cut -d\' \' -f1"
     IP = subprocess.check_output(cmd, shell = True )
-    cmd = "top -bn1 | grep load | awk '{printf (\"CPU Load: %.2f\", $(NF-2))}'"
+    cmd = "top -bn1 | grep load | awk '{printf (\"CPU:%.2f\", $(NF-2))}'"
     CPU = subprocess.check_output(cmd, shell = True )
-    cmd = "free -m | awk 'NR==2{printf (\"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2) }'"
+    cmd = "free -m | awk 'NR==2{printf (\"Mem:%s/%sM\", $3,$2) }'"
     MemUsage = subprocess.check_output(cmd, shell = True )
-    cmd = "df -h | awk '$NF==\"/\"{printf (\"Disk: %d/%dGB %s\", $3,$2,$5)}'"
+    cmd = "df -h | awk '$NF==\"/\"{printf (\" D:%d/%dG\", $3,$2)}'"
     Disk = subprocess.check_output(cmd, shell = True )
-
+    lt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     # Write two lines of text.
     draw.rectangle((0,0,width,height), outline=0, fill=0)
-    draw.text((x, top),       "IP: " + str(IP.decode('utf8').strip()).strip('b'),  font=font, fill=255)
-    draw.text((x, top+8),     str(CPU.decode('utf8').strip()).strip('b'), font=font, fill=255)
-    draw.text((x, top+16),    str(MemUsage.decode('utf8').strip()).strip('b'),  font=font, fill=255)
-    draw.text((x, top+25),    str(Disk.decode('utf8').strip()).strip('b'),  font=font, fill=255)
+
+    draw.text((x, top),     lt,  font=font, fill=255)  #"T:" + 
+    draw.text((x, top+8),       "IP: " + str(IP.decode('utf8').strip()).strip('b'),  font=font, fill=255)
+    draw.text((x, top+16),    str(CPU.decode('utf8').strip()).strip('b') + " CT:" + str(tmpcore/1000), font=font, fill=255)
+    draw.text((x, top+25),    str(MemUsage.decode('utf8').strip()).strip('b') + " " + str(Disk.decode('utf8').strip()).strip('b'),  font=font, fill=255)
     # Display image.
     disp.image(image)
     disp.display()
-    time.sleep(3)
+    time.sleep(1)
 
